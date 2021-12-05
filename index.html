@@ -20,11 +20,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <script src="kogito-editors-0.15.0.js"></script>
+    <script src="lienzo-svg-tiger.js"></script>
   </head>
   <body>
     <div class="toolbar">
       <button id="logNodes">Log Nodes</button>
       <button id="runtimeUIButton">Runtime UI</button>
+      <button id="focusOnTask">Focus On Task</button>
+      <button id="createTiger">Create Tiger</button>
     </div>
     <div id="bpmn-editor-container" />
 
@@ -124,7 +127,7 @@
           window.console.log("IDS = " + ids);
         });
       });
-      
+
       document.getElementById("runtimeUIButton").addEventListener("click", () => {
         setNodeDisabled(startEventId);
         setNodeDisabled(taskId);
@@ -134,9 +137,34 @@
         showBadge(endEventId, '37');
       });
 
-      function setNodeDisabled(uuid) {
-        editor.canvas.setBackgroundColor(uuid, "#C0C0C0");
-        editor.canvas.setBorderColor(uuid, "black");
+      document.getElementById("focusOnTask").addEventListener("click", () => {
+        focusOnNode(taskId);
+      });
+
+      document.getElementById("createTiger").addEventListener("click", () => {
+        createSVGTigerGroup();
+      });
+
+      function focusOnNode(shapeId) {
+        let editorframe = window.frames[0];
+        let editorcanvas = editorframe.canvas;
+        let shape = editorcanvas.getWiresShape(shapeId);
+        var location = shape.getComputedLocation();
+        var bb = shape.getBoundingBox();
+
+        var ev = editorcanvas.getViewport();
+        var vt = ev.transform;
+        var sx = vt.getScaleX();
+        var sy = vt.getScaleY();
+        console.log("SX = " + sx);
+        console.log("SY = " + sy);
+        vt.scale(2);
+        editorcanvas.draw();
+      }
+
+      function setNodeDisabled(shapeId) {
+        editor.canvas.setBackgroundColor(shapeId, "#C0C0C0");
+        editor.canvas.setBorderColor(shapeId, "black");
       }
 
       function showBadge(shapeId, badgeText) {
@@ -179,6 +207,20 @@
         badge.alpha = 0;
         badge.listening = false;
         return badge;
+      }
+
+      function createSVGTigerGroup() {
+        let editorframe = window.frames[0];
+        let editorcanvas = editorframe.canvas;
+        let shapes = editorframe.com.ait.lienzo.client.core.shape;
+        var tiger = buildTigerGroup(shapes);
+        tiger.x = 200;
+        tiger.y = 200;
+        tiger.alpha = 0;
+        tiger.draggable = true;
+        editorcanvas.add(tiger);
+        editorcanvas.draw();
+        editorcanvas.animations().alpha(tiger, 1, 1000);
       }
 
     </script>
