@@ -24,6 +24,7 @@
   </head>
   <body>
     <div class="toolbar">
+      <button id="reset">Reset</button>
       <button id="logNodes">Log Nodes</button>
       <button id="runtimeUIButton">Runtime UI</button>
       <button id="focusOnTask">Focus On Task</button>
@@ -116,10 +117,10 @@
       const taskId = "_316B6615-F68E-4FD4-9A58-BF39FEE32D9E";
       const endEventId = "_2A444B42-DA8D-442B-8306-898E49F56E08";
 
-      const editor = BpmnEditor.open({
-        container: document.getElementById("bpmn-editor-container"),
-        initialContent: Promise.resolve(bpmnRaw),
-        readOnly: true
+      let editor = createBpmnEditor();
+
+      document.getElementById("reset").addEventListener("click", () => {
+        reset();
       });
 
       document.getElementById("logNodes").addEventListener("click", () => {
@@ -167,6 +168,8 @@
         editor.canvas.setBorderColor(shapeId, "black");
       }
 
+      const animationDuration = 500;
+
       function showBadge(shapeId, badgeText) {
         let editorframe = window.frames[0];
         let editorcanvas = editorframe.canvas;
@@ -174,11 +177,17 @@
         var location = shape.getComputedLocation();
         var bb = shape.getBoundingBox();
         var badge = createBadge(badgeText);
-        badge.x = badge.x + location.x + (bb.getWidth() / 2);
-        badge.y = badge.y + location.y + bb.getHeight();
+        var bx = badge.x + location.x + (bb.getWidth() / 2);
+        var by = badge.y + location.y + bb.getHeight();
+        badge.alpha = 0;
+        badge.listening = false;
+        badge.x = 0;
+        badge.y = 0;
         editorcanvas.add(badge);
         editorcanvas.draw();
-        editorcanvas.animations().alpha(badge, 1, 1000);
+        editorcanvas.animations().alpha(badge, 1, animationDuration);
+        editorcanvas.animations().x(badge, bx, animationDuration);
+        editorcanvas.animations().y(badge, by, animationDuration);
       }
 
       function createBadge(badgetext) {
@@ -204,8 +213,6 @@
         badge.add(text);
         badge.x = -(bbw / 2) + 5;
         badge.y = (bbh / 2) + 5;
-        badge.alpha = 0;
-        badge.listening = false;
         return badge;
       }
 
@@ -214,13 +221,30 @@
         let editorcanvas = editorframe.canvas;
         let shapes = editorframe.com.ait.lienzo.client.core.shape;
         var tiger = buildTigerGroup(shapes);
-        tiger.x = 200;
-        tiger.y = 200;
+        var tx = 350;
+        var ty = 450;
+        tiger.x = 0;
+        tiger.y = ty;
         tiger.alpha = 0;
         tiger.draggable = true;
         editorcanvas.add(tiger);
         editorcanvas.draw();
-        editorcanvas.animations().alpha(tiger, 1, 1000);
+        editorcanvas.animations().alpha(tiger, 1, animationDuration);
+        editorcanvas.animations().x(tiger, tx, animationDuration / 2);
+        editorcanvas.animations().y(tiger, ty, animationDuration / 2);
+      }
+
+      function reset() {
+        editor.close();
+        editor = createBpmnEditor();
+      }
+
+      function createBpmnEditor() {
+        return BpmnEditor.open({
+          container: document.getElementById("bpmn-editor-container"),
+          initialContent: Promise.resolve(bpmnRaw),
+          readOnly: true
+        });
       }
 
     </script>
